@@ -1,6 +1,6 @@
 {
   "name": "synonomous",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Transform strings into synonyms for list decoration",
   "main": "index.js",
   "scripts": {

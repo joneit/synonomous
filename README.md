@@ -92,3 +92,8 @@ Results same as above but only synonyms of the 2nd element are added to `list` (
 Note that the `toCamelCase` and `toAllCaps` transformers prepend a `$` to any results that start with a digit. This creates an identifier that can be used to the right of JavaScript's dot (`.`) dereferencing operator. (JavaScript identifiers may not start with a digit but may contain a `$`.) When decorating an array, this also avoids possible conflicts with an array's element indexes.
 
 The `verbatim` transformer does not prepend `$`. Any results that are integers that would overwrite existing array indexes are not added as properties.
+
+### Revision History
+
+* **1.0.1** — Added `toTitle` transformer.
+* **1.0.0** — Initial release.

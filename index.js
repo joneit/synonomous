@@ -14,10 +14,27 @@ var WITH_DOLLAR_PREFIX = '$$$1';
 var REGEX_INITIAL_CAPITAL = /^([A-Z])/;
 function WITH_LOWER_CASE(match, char) { return char.toLowerCase(); }
 
+var REGEXP_LOWER_CASE_LETTER = /[a-z]/;
+var REGEXP_WORD_SEPARATORS = /[\s\-_]*([^\s\-_])([^\s\-_]+)/g;
+var WITH_CAPTIAL_LETTER = function(a, b, c) { return b.toUpperCase() + c; };
+
+var REGEXP_CAPITAL_LETTERS = /[A-Z]+/g;
+var WITH_PREFIXED_SPACE = ' $&';
+
+var REGEXP_OVER_CAPITALIZED_WORDS = /([A-Z]+)([A-Z][a-z])/g;
+var WITH_SEPARATE_WORDS = '$1 $2';
+
+/** @typedef {function} Transformer
+ * @param {string} key
+ * @returns {string}
+ */
+
 /**
- * Additional transformer functions may be mixed into the prototype (or added to an instance).
  * @classdesc This object holds a list of transformations used by {@link Synonomous.prototype.getSynonyms} and {@link Synonomous.prototype.decorateList}.
- * @param {string[]} [transformations] - If omitted, {@link Synonomous.prototype.transformations} serves as a default.
+ *
+ * Additional transformer functions may be mixed into the prototype (or added to an instance).
+ *
+ *  @param {string[]} [transformations] - If omitted, {@link Synonomous.prototype.transformations} serves as a default.
  * @constructor
  */
 function Synonomous(transformations, propName) {
@@ -62,8 +79,6 @@ Synonomous.prototype = {
     propName: 'name',
 
     /** A transformer that returns its input converted to a string with ` + '' `.
-     * @param {string} key
-     * @returns {string}
      * @memberOf Synonomous#
      */
     verbatim: function(key) {
@@ -78,8 +93,7 @@ Synonomous.prototype = {
      * 1. To avoid conflicts with array element indexes.
      * 2. To create an identifier that can be used to the right of the dot (`.`) dereferencing operator (identifiers cannot start with a digit but can contain a `$`).
      *
-     * @param {string} key
-     * @returns {string}
+     * @type {Transformer}
      * @memberOf Synonomous#
      */
     toCamelCase: function(key) {
@@ -96,8 +110,7 @@ Synonomous.prototype = {
      * 1. To avoid conflicts with array element indexes.
      * 2. To create an identifier that can be used to the right of the dot (`.`) dereferencing operator (identifiers cannot start with a digit but can contain a `$`).
      *
-     * @param {string} key
-     * @returns {string}
+     * @type {Transformer}
      * @memberOf Synonomous#
      */
     toAllCaps: function(key) {
@@ -109,15 +122,30 @@ Synonomous.prototype = {
     },
 
     /**
-     * If `name` is a string and non-blank, returns an array containing unique non-blank converted names, which typically includes `name` (when `toString` transformer is active).
-     * @param {string} name
-     * @returns {string[]}
+     * A transformer that separates camel case or white-space-, hyphen-, or underscore-separated-words into truly separate words and capitalizing the first letter of each.
+     *
+     * This transformer is meant to create column headers from column names. It deliberating inserts spaces so the results are unsuitable as JavaScript identifiers.
+     * @type {Transformer}
      * @memberOf Synonomous#
      */
-    getSynonyms: function(name) {
+    toTitle: function(key) {
+        return (REGEXP_LOWER_CASE_LETTER.test(key) ? key : key.toLowerCase())
+            .replace(REGEXP_WORD_SEPARATORS, WITH_CAPTIAL_LETTER)
+            .replace(REGEXP_CAPITAL_LETTERS, WITH_PREFIXED_SPACE)
+            .replace(REGEXP_OVER_CAPITALIZED_WORDS, WITH_SEPARATE_WORDS)
+            .trim();
+    },
+
+    /**
+     * If `name` is a string and non-blank, returns an array containing unique non-blank converted names.
+     * @param {string} name - String to make synonyms of.
+     * @parma {string[]} transformations - When provided, temporarily overrides `this.transformations`.
+     * @memberOf Synonomous#
+     */
+    getSynonyms: function(name, transformations) {
         var synonyms = [];
         if (typeof name === 'string' && name) {
-            this.transformations.forEach(function(key) {
+            (transformations || this.transformations).forEach(function(key) {
                 if (typeof this[key] !== 'function') {
                     throw new ReferenceError('Unknown transformer "' + key + '"');
                 }
