@@ -1,0 +1,22 @@
+{
+  "name": "synonomous",
+  "version": "1.0.0",
+  "description": "Transform strings into synonyms for list decoration",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/joneit/synonomous.git"
+  },
+  "author": {
+    "name": "Jonathan Eiten",
+    "email": "jonathan.eiten@mojotouch.com"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/joneit/synonomous/issues"
+  },
+  "homepage": "https://github.com/joneit/synonomous#readme"
+}
