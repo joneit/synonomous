@@ -183,8 +183,8 @@ Synonomous.prototype = {
             elements = [list[index]];
         } else {
             // promote args
-            list = elements = index;
-            propName = list;
+            list = elements = arguments[0];
+            propName = arguments[1];
         }
         propName = propName || this.propName;
         elements.forEach(function(item) {
