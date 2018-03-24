@@ -123,21 +123,21 @@ Synonomous.prototype = {
     },
 
     /**
-     * Decorate a `collection` with properties named in `propNames` all referencing `item`.
-     * @param {object} collection - The object to decorate. If `this.dictPath` is defined, then decorate `collection[this.dictPath]` instead (created as needed).
+     * Decorate an object `obj` with properties named in `propNames` all referencing `item`.
+     * @param {object} obj - The object to decorate. If `this.dictPath` is defined, then decorate `obj[this.dictPath]` instead (created as needed).
      *
      * @param {string[]} propNames
      * @param item
-     * @returns {object} `collection`
+     * @returns {object} `obj`, now with additional properties (possibly)
      */
-    decorate: function(collection, propNames, item) {
-        collection = drilldown(collection, this.dictPath);
+    decorate: function(obj, propNames, item) {
+        var drilldownContext = drilldown(obj, this.dictPath);
         propNames.forEach(function(propName) {
-            if (!(propName in collection)) {
-                collection[propName] = item;
+            if (!(propName in drilldownContext)) {
+                drilldownContext[propName] = item;
             }
         });
-        return collection;
+        return obj;
     },
 
     /**
@@ -177,6 +177,12 @@ Synonomous.prototype = {
         return list;
     }
 };
+
+
+// a.k.a.'s:
+Synonomous.prototype.decorateObject = Synonomous.prototype.decorate;
+Synonomous.prototype.decorateArray = Synonomous.prototype.decorateList;
+
 
 function drilldown(collection, breadcrumbs) {
     return breadcrumbs.reduce(function(result, crumb) {
