@@ -1,6 +1,6 @@
 {
   "name": "synonomous",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "description": "Decorate an array instance with synonyms of its elements",
   "main": "index.js",
   "scripts": {

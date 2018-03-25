@@ -115,8 +115,8 @@ console.log(decorator.dictPath); // "properties.dimension"
 ### Decorate an array with synonyms
 Here we arrive at the real utility of this `synonomous` module. To add synonyms as properties to an array of objects, use the `decorateArray` (aka `decorateList`) method:
 ```js
-var decorator = new Synonymous(['verbatim', 'toAllCaps', 'toCamelCase']);
 var list = ['borderLeft', 'background-color'];
+decorator.transformations = ['verbatim', 'toAllCaps', 'toCamelCase'];
 decorator.decorateArray(list); // aka `decorateList`
 ```
 This call decorates and returns `list` which would then look like this:
@@ -138,8 +138,8 @@ Note that this is not an enumeration; the property values are not integer indexe
 #### Decorating with synonyms of a single element
 When you just want to decorate your list with synonyms of a single element of the list, you can specify the index of such an element with the overload `decorateArray(index: number, list: (string|object)[])`:
 ```js
-var decorator = new Synonymous;
 var list = ['borderLeft', 'background-color'];
+delete decorator.transformations; // revert to default (verbatim and camelCase)
 decorator.decorateArray(1, list); // just decorate with synonyms for 2nd element
 ```
 `list` now looks like this:
@@ -153,9 +153,8 @@ decorator.decorateArray(1, list); // just decorate with synonyms for 2nd element
 ```
 
 #### Decorating with a property of an element
-When elements are objects rather than string primitives, you can specify which property of such objects to make synonyms of with the overload `decorateArray(list: (string|object)[], propPath: (string|array) = this.propPath)`:
+When elements are objects rather than string primitives, you can specify which property of such objects to make synonyms of with the overload `decorator.decorateArray(list: (string|object)[], propPath: (string|array) = decorator.propPath)`:
 ```js
-var decorator = new Synonymous;
 var list = [
     { style: 'borderLeft', value: '8px' },
     { style: 'background-color', value: 'pink' }
@@ -178,11 +177,46 @@ Notes:
 3. `decorator.propPath` can be customized in the same manner as described above in [_Setting a custom instance default_](#setting-a-custom-instance-default) for `decorator.dictPath` and `decorator.transformations`.
 
 #### Decorating with synonyms of a property of a single element
-You can of course combine these two features with the overload `decorateArray(index: number, list: object[], propPath: (string|array) = this.propPath)`:
+You can of course combine these two features with the overload `decorator.decorateArray(index: number, list: object[], propPath: (string|array) = decorator.propPath)`:
 ```js
 decorator.decorateArray(1, list, 'style');
 ```
 Results same as above but only synonyms of the 2nd element (index `1`) are added to `list` (no `borderLeft` property in this case).
+
+#### Decorating elements with strings
+As an alterative to decorating the list with synonyms of the elements, you can also decorate the elements themselves with the synonym strings. To do this, set `this.transformations` to an object rather than an array of strings. The keys are the transformer names and the values are used as dot-paths into each element to put the string result of the transformer call.
+```js
+this.transformers = {
+    toCamelCase: 'id',
+    toTitle: 'info.title'
+};
+var list = [
+    { style: 'borderLeft', value: '8px' },
+    { style: 'background-color', value: 'pink' }
+];
+decorator.decorateArray(list, 'style');
+```
+list` now looks like this:
+```js
+{
+    0: {
+        style: 'borderLeft',
+        value: '8px',
+        id: 'borderLeft',
+        info: {
+            title: 'Border Left'
+        }
+    },
+
+    1: {
+        style: 'background-color',
+        value: 'pink' ,
+        id: 'backgroundColor',
+        info: {
+            title: 'Background Color'
+        }
+    }
+```
 
 ### Using synonyms in code
 
@@ -190,9 +224,20 @@ Note that the `toCamelCase` and `toAllCaps` transformers prepend a `$` to any re
 
 The `verbatim` transformer does not prepend `$`. Any results that are integers that would overwrite existing array indexes are not added as properties by `decorateArray`.
 
+### Instantiation options
+The constructor takes a single optional parameter, an `options` object, which is a shorthand method of setting the `transformations`, `dictPath`, and `propPath` properties.
+
+For example, to set up a `header` field for each element, based on its `name` field`:
+```js
+var decorator = new Decorator({
+    transformations: ['toTitle'],
+    propPath: 'name',
+    dictPath: '*.header'
+}
 ### Revision History
 
-* **2.0.1** —
+* **2.1.0** — `transformations` property can now be an object as well an array of strings. The keys of the object name the transformers. The values are not used by `decorateObject` but are used by `decorateArray` to add new string properties to each element.
+* **2.0.1**
    * Fixed `decorate` to return the given object itself (instead of the drill-down context within the given object).
    * Added two method a.k.a.'s to clarify the intent of each:
        * `decorateObject` for `decorate`
