@@ -60,7 +60,7 @@ To add properties to an object, all with the same value (_i.e.,_ synonyms), use 
 ```js
 var myObject = {}, value = {};
 var propNames = ['width', 'thickness'];
-decorator.decorateObject(myObject, propNames, value);
+decorator.decorateObject(myObject, propNames, value); // aka `decorate`
 ```
 Mutates and returns `myObject`:
 ```
@@ -111,13 +111,13 @@ console.dir(decorator.dictPath); // Array(2) -> ["properties", "dimensions"]
 console.log(decorator.dictPath); // "properties.dimension"
 ```
 
-`decorator.dictPath` can be customized in the same manner as described above ([_Setting a custom instance default_](#setting-a-custom-instance-default) for `decorator.transformations`.
+`decorator.dictPath` can be customized in the same manner as described above in [_Setting a custom instance default_](#setting-a-custom-instance-default) for `decorator.transformations`.
 ### Decorate an array with synonyms
 Here we arrive at the real utility of this `synonomous` module. To add synonyms as properties to an array of objects, use the `decorateArray` (aka `decorateList`) method:
 ```js
 var decorator = new Synonymous(['verbatim', 'toAllCaps', 'toCamelCase']);
 var list = ['borderLeft', 'background-color'];
-decorator.decorateArray(list); // synonym: `decorateList`
+decorator.decorateArray(list); // aka `decorateList`
 ```
 This call decorates and returns `list` which would then look like this:
 ```js
@@ -131,9 +131,9 @@ This call decorates and returns `list` which would then look like this:
     'backgroundColor': list[1] // camelCase
  }
 ```
-**Specifically, the array now has properties that point to elements whose keys are transformations of each element. This lets the array double as a dictionary to its own elements.**
+**Specifically, the array now has new properties whose keys are transformations of each element _and whose values are references to them._ This lets the array double as a dictionary to its own elements.**
 
-Note that this is not an enumeration; the property values are not integer indexes but rather references to the elements themselves.
+Note that this is not an enumeration; the property values are not integer indexes but rather references to the elements themselves. Also note that when elements contain primitive values, the new synonyms properties' values will be copies of them rather than references to them.
 
 #### Decorating with synonyms of a single element
 When you just want to decorate your list with synonyms of a single element of the list, you can specify the index of such an element with the overload `decorateArray(index: number, list: (string|object)[])`:
@@ -153,7 +153,7 @@ decorator.decorateArray(1, list); // just decorate with synonyms for 2nd element
 ```
 
 #### Decorating with a property of an element
-When elements are objects rather than string primitives, you can specify which property of such objects to make synonyms of with the overload `decorateArray(list: (string|object)[], propName: (string|array) = 'name')`:
+When elements are objects rather than string primitives, you can specify which property of such objects to make synonyms of with the overload `decorateArray(list: (string|object)[], propPath: (string|array) = this.propPath)`:
 ```js
 var decorator = new Synonymous;
 var list = [
@@ -173,12 +173,12 @@ decorator.decorateArray(list, 'style'); // decorate with synonyms of each elemen
  }
 ```
 Notes:
-1. The `propName` parameter defaults to the value of the `decorator.propName` property when omitted. When so defined, _and_ the list element is an object, `propName` is used to drill down into the list element. Otherwise the list element iteself (coerced to a string) is used as the source for the synonyms.
-2. Both the `propName` parameter and the `decorator.propName` property can be a dot-path (or an array), similar to `decorator.dictPath`.
-3. `decorator.propName` can be customized in the same manner as described above ([_Setting a custom instance default_](#setting-a-custom-instance-default) for `decorator.dictPath` and `decorator.transformations`.
+1. When omitted, the `propPath` parameter defaults to the value of the `decorator.propPath` property, whose initial value is `'name'`. When the list element is an object, this path is used to drill down into the list element. Otherwise (if path is undefined, even after applying the default _or_ the list element is not an object), the list element iteself (coerced to a string) is used as the source for the synonyms.
+2. Both the `propPath` parameter and the `decorator.propPath` property can be a dot-path (or an array), similar to `decorator.dictPath`.
+3. `decorator.propPath` can be customized in the same manner as described above in [_Setting a custom instance default_](#setting-a-custom-instance-default) for `decorator.dictPath` and `decorator.transformations`.
 
 #### Decorating with synonyms of a property of a single element
-You can of course combine these two features with the overload `decorateArray(index: number, list: object[], propName: (string|array) = 'name')`:
+You can of course combine these two features with the overload `decorateArray(index: number, list: object[], propPath: (string|array) = this.propPath)`:
 ```js
 decorator.decorateArray(1, list, 'style');
 ```
@@ -199,7 +199,7 @@ The `verbatim` transformer does not prepend `$`. Any results that are integers t
        * `decorateArray` for `decorateList`
 * **2.0.0**
    * Added `decorate` method and `dictPath` property.
-   * Changed `propName` property to `propPath`. _(Breaking change if property used.)_
+   * Changed `propPath` property to `propPath`. _(Breaking change if property used.)_
    * Changed optional constructor params to a single `options` object. _(Breaking change if params were used.)_
    * Moved transformers to their own file. _(Breaking change if you want to override and exsiting transformer or add a custom transformer.)_
 * **1.0.2** — Fixed overloads of `decorateList` when first param `index` is omitted.
