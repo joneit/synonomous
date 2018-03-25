@@ -236,6 +236,7 @@ var decorator = new Decorator({
 }
 ### Revision History
 
+* **2.1.1** — Added `force` property to force overwriting existing property values with new values. Otherwise new values are discarded.
 * **2.1.0** — `transformations` property can now be an object as well an array of strings. The keys of the object name the transformers. The values are not used by `decorateObject` but are used by `decorateArray` to add new string properties to each element.
 * **2.0.1**
    * Fixed `decorate` to return the given object itself (instead of the drill-down context within the given object).

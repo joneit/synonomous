@@ -2,7 +2,7 @@
 
 var transformers = require('./transformers');
 
-var optionNames = ['transformations', 'propPath', 'dictPath'];
+var optionNames = ['transformations', 'propPath', 'dictPath', 'force'];
 
 /**
  * @classdesc This object holds a list of transformations used by {@link Synonomous.prototype.getSynonyms} and {@link Synonomous.prototype.decorateList}.
@@ -10,9 +10,10 @@ var optionNames = ['transformations', 'propPath', 'dictPath'];
  * Additional transformer functions may be mixed into the prototype (or added to an instance).
  *
  * @param {object} [options]
- * @param {string[]} [transformations] - If omitted, {@link Synonomous.prototype.transformations} serves as a default.
- * @param {string} [propPath] - If omitted, {@link Synonomous.prototype.propPath} serves as a default.
- * @param {string} [dictPath] - If omitted, {@link Synonomous.prototype.dictPath} serves as a default.
+ * @param {string[]} [options.transformations] - If omitted, {@link Synonomous.prototype.transformations} serves as a default.
+ * @param {string} [options.propPath] - If omitted, {@link Synonomous.prototype.propPath} serves as a default.
+ * @param {string} [options.dictPath] - If omitted, {@link Synonomous.prototype.dictPath} serves as a default.
+ * @param {boolean} [options.force=false] - If truthy, new property values override existing values; else new values are discarded.
  * @constructor
  */
 function Synonomous(options) {
@@ -136,12 +137,15 @@ Synonomous.prototype = {
      * @returns {object} `obj`, now with additional properties (possibly)
      */
     decorate: function(obj, propNames, item) {
-        var drilldownContext = drilldown(obj, this.dictPath);
+        var drilldownContext = drilldown(obj, this.dictPath),
+            force = this.force;
+
         propNames.forEach(function(propName) {
-            if (!(propName in drilldownContext)) {
+            if (force || !(propName in drilldownContext)) {
                 drilldownContext[propName] = item;
             }
         });
+
         return obj;
     },
 
@@ -234,7 +238,9 @@ function injectTransformedValueIntoItem(item, value, transformation) {
         propName = pathList.splice(pathList.length - 1, 1)[0],
         drillDownContext = drilldown(item, pathList);
 
-    drillDownContext[propName] = transformer(value);
+    if (this.force || !(propName in drillDownContext)) {
+        drillDownContext[propName] = transformer(value);
+    }
 }
 
 
