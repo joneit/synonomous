@@ -236,6 +236,7 @@ var decorator = new Decorator({
 }
 ### Revision History
 
+* **2.1.2** - `decorate` no longer adds integer synonyms because they are indistinguishable from and may clash with array indexes. (This is aimed at the `verbatim` transformer; the `toCamelCase` and `toAllCaps` transformers never return integer synonyms because they always prepend a `$` character to synonyms beginning with a digit.)
 * **2.1.1** — Added `force` property to force overwriting existing property values with new values. Otherwise new values are discarded.
 * **2.1.0** — `transformations` property can now be an object as well an array of strings. The keys of the object name the transformers. The values are not used by `decorateObject` but are used by `decorateArray` to add new string properties to each element.
 * **2.0.1**
@@ -245,7 +246,7 @@ var decorator = new Decorator({
        * `decorateArray` for `decorateList`
 * **2.0.0**
    * Added `decorate` method and `dictPath` property.
-   * Changed `propPath` property to `propPath`. _(Breaking change if property used.)_
+   * Changed `propName` property to `propPath`. _(Breaking change if property used.)_
    * Changed optional constructor params to a single `options` object. _(Breaking change if params were used.)_
    * Moved transformers to their own file. _(Breaking change if you want to override and exsiting transformer or add a custom transformer.)_
 * **1.0.2** — Fixed overloads of `decorateList` when first param `index` is omitted.

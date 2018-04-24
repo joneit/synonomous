@@ -2,6 +2,8 @@
 
 var transformers = require('./transformers');
 
+var REGEXP_INTEGER = /^\d+$/;
+
 var optionNames = ['transformations', 'propPath', 'dictPath', 'force'];
 
 /**
@@ -11,8 +13,8 @@ var optionNames = ['transformations', 'propPath', 'dictPath', 'force'];
  *
  * @param {object} [options]
  * @param {string[]} [options.transformations] - If omitted, {@link Synonomous.prototype.transformations} serves as a default.
- * @param {string} [options.propPath] - If omitted, {@link Synonomous.prototype.propPath} serves as a default.
- * @param {string} [options.dictPath] - If omitted, {@link Synonomous.prototype.dictPath} serves as a default.
+ * @param {string|string[]} [options.propPath] - If omitted, {@link Synonomous.prototype.propPath} serves as a default.
+ * @param {string|string[]} [options.dictPath] - If omitted, {@link Synonomous.prototype.dictPath} serves as a default.
  * @param {boolean} [options.force=false] - If truthy, new property values override existing values; else new values are discarded.
  * @constructor
  */
@@ -65,7 +67,7 @@ Synonomous.prototype = {
      * The global default for all instances can be reset using the setter with the prototype as the execution context,
      * _e.g._ `Synonomous.prototype.propPath = newValue;`.
      *
-     * @type {undefined|string[]}
+     * @type {undefined|string|string[]}
      * @memberOf Synonomous#
      */
     set propPath(crumbs) {
@@ -138,10 +140,14 @@ Synonomous.prototype = {
      */
     decorate: function(obj, propNames, item) {
         var drilldownContext = drilldown(obj, this.dictPath),
+            decoratingObjectItself = drilldownContext === obj,
             force = this.force;
 
         propNames.forEach(function(propName) {
-            if (force || !(propName in drilldownContext)) {
+            if (
+                !(decoratingObjectItself && REGEXP_INTEGER.test(propName)) &&
+                (force || !(propName in drilldownContext))
+            ) {
                 drilldownContext[propName] = item;
             }
         });
@@ -154,21 +160,22 @@ Synonomous.prototype = {
      *
      * @desc Adds synonyms for a single element (`index`) or the entire array, based on a given property of each element (`propPath`) or the element itself.
      *
-     * That is, each element is either iteself converted to a string; or is an object with a property named by following `propPath` which is converted to a string.
+     * That is, each element is either itself converted to a string; or is an object with a property named by following `propPath` which is converted to a string.
      *
      * For each element, all transformers named in `this.transformations` are run on that string.
      * * _When `this.transformations` is an array:_
      * **Create dictionary entries (synonyms) for the element.**
      * Specifically: All the resulting unique non-blank "synonyms" are added as properties to the array with the value of the property being a reference to the element (if it was an object) or a copy of the element (if it was a string), subject to the following rules:
-     *    1. Duplicate synonyms are not added.
+     *    1. Duplicate synonyms are not added (unless `this.force` is truthy).
      *    2. Blank synonyms are not added.
+     *    3. Integer synonyms are not added because they are indistinguishable from and may clash with array indexes.
      * * _When `this.transformations` is an non-array object:_
      * **Create a new property inside the element for each transformation.**
      * Specifically: The keys of `this.transformations` name the transformers. The values are dot-paths (dot-separated-strings or arrays) to properties inside each element, set to the string returned by the transformer named by the key.
      *
      * @param {number} [index] - Index of element of `list` to add synonyms for. If omitted:
      * 1. Adds synonyms for all elements of `list`.
-     * 2. `list` and `index` are promoted to the 1st and 2nd parameter positions, respectively.
+     * 2. `list` and `propPath` are promoted to the 1st and 2nd parameter positions, respectively.
      * @param {(string|Object.<string, string>)[]} list - Array whose element(s) to make synonyms of _and_ the object to decorate. If `this.dictPath` is defined, then decorate `list[this.dictPath]` instead (created as needed).
      * @param {string} [propPath=this.propPath] - Name of the property in each element of `list` to make synonyms of. If defined _and_ list element is an object, adds synonyms of `list[propPath]` as string; else adds synonyms of the list element itself as string.
      * @returns {Array} `list`
